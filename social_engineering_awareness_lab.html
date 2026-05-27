@@ -1,0 +1,487 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text-primary);background:var(--color-background-tertiary)}
+
+.shell{display:grid;grid-template-columns:200px 1fr;min-height:700px}
+
+.nav{background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column}
+.nav-head{padding:14px 16px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.6px}
+.nav-item{padding:10px 16px;cursor:pointer;border-left:3px solid transparent;transition:background .15s,border-color .15s;border-bottom:0.5px solid var(--color-border-tertiary)}
+.nav-item:hover{background:var(--color-background-secondary)}
+.nav-item.on{border-left-color:var(--color-border-danger);background:var(--color-background-danger)}
+.nav-label{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.nav-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.nav-badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:10px;margin-top:3px;font-weight:500}
+.nb-red{background:var(--color-background-danger);color:var(--color-text-danger)}
+.nb-amber{background:var(--color-background-warning);color:var(--color-text-warning)}
+.nb-blue{background:var(--color-background-info);color:var(--color-text-info)}
+
+.content{display:flex;flex-direction:column;overflow:hidden}
+
+.toolbar{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:10px 20px;display:flex;align-items:center;gap:12px}
+.toolbar-title{font-size:14px;font-weight:500;flex:1}
+.mode-btns{display:flex;gap:6px}
+.mode-btn{padding:5px 12px;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;background:transparent;color:var(--color-text-secondary);transition:all .15s}
+.mode-btn.on{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger)}
+.mode-btn:hover:not(.on){background:var(--color-background-secondary)}
+
+.score-strip{display:flex;gap:0;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.sc{flex:1;padding:8px 14px;text-align:center;border-right:0.5px solid var(--color-border-tertiary)}
+.sc:last-child{border-right:none}
+.sc-val{font-size:18px;font-weight:500}
+.sc-lbl{font-size:10px;color:var(--color-text-secondary);margin-top:1px;letter-spacing:.4px}
+
+.workspace{flex:1;display:flex;gap:0;overflow:hidden}
+
+.email-panel{flex:1;overflow-y:auto;padding:20px;background:var(--color-background-tertiary)}
+.email-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;max-width:640px;margin:0 auto}
+
+.email-header-bar{background:var(--color-background-secondary);padding:14px 18px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.email-field{display:flex;gap:10px;font-size:13px;margin-bottom:6px;align-items:flex-start}
+.email-field:last-child{margin-bottom:0}
+.ef-label{font-size:11px;color:var(--color-text-secondary);width:36px;flex-shrink:0;padding-top:1px;font-weight:500}
+.ef-val{font-size:13px;color:var(--color-text-primary);flex:1;line-height:1.5}
+
+.email-subject-bar{padding:12px 18px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:15px;font-weight:500}
+.email-body{padding:20px 18px;font-size:14px;line-height:1.8;color:var(--color-text-primary)}
+.email-body p{margin-bottom:12px}
+.email-body p:last-child{margin-bottom:0}
+
+.cta-btn{display:inline-block;padding:10px 22px;border-radius:var(--border-radius-md);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:opacity .15s;margin:4px 0}
+.cta-btn:hover{opacity:.85}
+
+.flag{position:relative;display:inline;border-radius:3px;cursor:pointer;transition:background .15s}
+.flag.armed{border-radius:3px}
+.flag.armed:hover{outline:2px solid var(--color-border-danger)}
+.flag.revealed{background:var(--color-background-danger);color:var(--color-text-danger);outline:2px solid var(--color-border-danger);border-radius:3px;padding:0 2px}
+.flag.revealed-safe{background:var(--color-background-success);color:var(--color-text-success);outline:2px solid var(--color-border-success);border-radius:3px;padding:0 2px}
+
+.tooltip-wrap{display:inline;position:relative}
+.tooltip-box{display:none;position:absolute;z-index:99;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--color-background-primary);border:0.5px solid var(--color-border-danger);border-radius:var(--border-radius-md);padding:8px 10px;font-size:12px;line-height:1.5;width:220px;color:var(--color-text-danger);pointer-events:none;white-space:normal;font-weight:400}
+.tooltip-wrap:hover .tooltip-box{display:block}
+.tooltip-box.safe{border-color:var(--color-border-success);color:var(--color-text-success)}
+
+.annotation-panel{width:270px;background:var(--color-background-primary);border-left:0.5px solid var(--color-border-tertiary);overflow-y:auto;display:flex;flex-direction:column}
+.ap-head{padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;font-weight:500;color:var(--color-text-secondary)}
+.ann-item{padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer;transition:background .15s}
+.ann-item:hover{background:var(--color-background-secondary)}
+.ann-item.found{background:var(--color-background-danger)}
+.ann-num{display:inline-flex;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:500;align-items:center;justify-content:center;margin-right:6px;flex-shrink:0;background:var(--color-background-danger);color:var(--color-text-danger);border:0.5px solid var(--color-border-danger)}
+.ann-num.safe{background:var(--color-background-success);color:var(--color-text-success);border-color:var(--color-border-success)}
+.ann-title{font-size:12px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center}
+.ann-body{font-size:11px;color:var(--color-text-secondary);margin-top:3px;line-height:1.5;padding-left:24px}
+.ann-hidden{font-size:11px;color:var(--color-text-tertiary);font-style:italic;padding-left:24px;margin-top:3px}
+
+.quiz-area{padding:20px;max-width:580px;margin:0 auto}
+.quiz-q{font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.5}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;transition:all .15s;text-align:left;background:transparent;color:var(--color-text-primary)}
+.quiz-opt:hover{background:var(--color-background-secondary)}
+.quiz-opt.correct{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success)}
+.quiz-opt.wrong{background:var(--color-background-danger);border-color:var(--color-border-danger);color:var(--color-text-danger)}
+.quiz-explain{margin-top:12px;padding:10px 12px;border-radius:var(--border-radius-md);font-size:12px;line-height:1.6;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.quiz-next{margin-top:12px;padding:8px 18px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;background:transparent;color:var(--color-text-primary)}
+.quiz-next:hover{background:var(--color-background-secondary)}
+
+.progress-bar{height:3px;background:var(--color-border-tertiary);border-radius:2px;overflow:hidden;margin:0 20px 0}
+.progress-fill{height:100%;background:var(--color-text-success);transition:width .4s ease}
+
+.reveal-all-btn{margin:12px 14px;padding:7px 12px;font-size:12px;border:0.5px solid var(--color-border-danger);border-radius:var(--border-radius-md);cursor:pointer;background:transparent;color:var(--color-text-danger);width:calc(100% - 28px)}
+.reveal-all-btn:hover{background:var(--color-background-danger)}
+</style>
+
+<h2 class="sr-only">Social engineering awareness lab — identify phishing red flags in simulated emails and test your knowledge with a quiz</h2>
+
+<div class="shell">
+
+<div class="nav">
+  <div class="nav-head"><i class="ti ti-mail" aria-hidden="true" style="margin-right:4px"></i>Scenarios</div>
+  <div class="nav-item on" onclick="loadScenario(0,this)">
+    <div class="nav-label">Credential harvest</div>
+    <div class="nav-sub">IT dept impersonation</div>
+    <div class="nav-badge nb-red">Phishing</div>
+  </div>
+  <div class="nav-item" onclick="loadScenario(1,this)">
+    <div class="nav-label">CEO fraud</div>
+    <div class="nav-sub">Wire transfer request</div>
+    <div class="nav-badge nb-red">Spear phish</div>
+  </div>
+  <div class="nav-item" onclick="loadScenario(2,this)">
+    <div class="nav-label">Package delivery</div>
+    <div class="nav-sub">Smishing / link bait</div>
+    <div class="nav-badge nb-amber">Suspicious</div>
+  </div>
+  <div class="nav-item" onclick="loadScenario(3,this)">
+    <div class="nav-label">Bank alert</div>
+    <div class="nav-sub">Urgency + fear tactic</div>
+    <div class="nav-badge nb-red">Phishing</div>
+  </div>
+  <div class="nav-item" onclick="loadScenario(4,this)">
+    <div class="nav-label">Legitimate email</div>
+    <div class="nav-sub">Spot the safe one</div>
+    <div class="nav-badge nb-blue">Legit</div>
+  </div>
+  <div style="flex:1"></div>
+  <div style="padding:12px 14px;border-top:0.5px solid var(--color-border-tertiary);font-size:11px;color:var(--color-text-secondary);line-height:1.5">
+    <i class="ti ti-shield-check" aria-hidden="true" style="color:var(--color-text-success);margin-right:3px"></i>
+    All emails are fictional. For awareness training only.
+  </div>
+</div>
+
+<div class="content">
+  <div class="toolbar">
+    <div class="toolbar-title" id="scenario-title">Credential harvest — IT dept impersonation</div>
+    <div class="mode-btns">
+      <button class="mode-btn on" onclick="setMode('hunt',this)"><i class="ti ti-crosshair" aria-hidden="true" style="margin-right:4px"></i>Hunt mode</button>
+      <button class="mode-btn" onclick="setMode('reveal',this)"><i class="ti ti-eye" aria-hidden="true" style="margin-right:4px"></i>Reveal all</button>
+      <button class="mode-btn" onclick="setMode('quiz',this)"><i class="ti ti-brain" aria-hidden="true" style="margin-right:4px"></i>Quiz</button>
+    </div>
+  </div>
+
+  <div class="score-strip">
+    <div class="sc"><div class="sc-val" id="sc-found" style="color:var(--color-text-danger)">0</div><div class="sc-lbl">FLAGS FOUND</div></div>
+    <div class="sc"><div class="sc-val" id="sc-total">0</div><div class="sc-lbl">TOTAL FLAGS</div></div>
+    <div class="sc"><div class="sc-val" id="sc-score" style="color:var(--color-text-success)">0%</div><div class="sc-lbl">SCORE</div></div>
+    <div class="sc"><div class="sc-val" id="sc-quiz" style="color:var(--color-text-info)">–</div><div class="sc-lbl">QUIZ</div></div>
+  </div>
+
+  <div class="workspace" id="workspace">
+    <div class="email-panel" id="email-panel"></div>
+    <div class="annotation-panel" id="ann-panel">
+      <div class="ap-head"><i class="ti ti-list" aria-hidden="true" style="margin-right:4px"></i>Red flags — click to reveal</div>
+      <div id="ann-list"></div>
+      <button class="reveal-all-btn" id="rev-btn" onclick="revealAll()"><i class="ti ti-eye" aria-hidden="true" style="margin-right:4px"></i>Reveal all flags</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const SCENARIOS = [
+{
+  title:'Credential harvest — IT dept impersonation',
+  from:'IT-Support <it.support@corp-helpdesk.net>',
+  replyTo:'it.support@corp-helpdesk.net',
+  to:'you@yourcompany.com',
+  date:'Mon, 26 May 2026 08:47:03 +0000',
+  subject:'[URGENT] Your account will be suspended in 24 hours',
+  body:`<p>Dear Employee,</p>
+<p>Our security systems have detected <span class="flag armed" data-flag="3">unusual login activity</span> on your account. To prevent unauthorised access, your account will be <strong>suspended in 24 hours</strong> unless you verify your credentials immediately.</p>
+<p>Please click the button below and sign in with your corporate credentials to confirm your identity and restore full access:</p>
+<p style="text-align:center;margin:20px 0"><span class="cta-btn flag armed" data-flag="4" style="background:#0078d4;color:#fff;display:inline-block">Verify My Account Now →</span></p>
+<p>If you do not verify within <span class="flag armed" data-flag="2">24 hours</span>, your account will be permanently suspended and you will lose access to all company systems.</p>
+<p>This is an automated message. <span class="flag armed" data-flag="5">Do not reply to this email.</span></p>
+<p>Regards,<br>IT Support Team<br><span class="flag armed" data-flag="0">Your Company IT Department</span></p>`,
+  flags:[
+    {label:'Spoofed sender domain',body:'The sender is "corp-helpdesk.net" — not your actual company domain. Attackers register lookalike domains to appear legitimate. Always verify the exact domain after the @.',danger:true},
+    {label:'No personalisation',body:'A real IT department email would address you by name. "Dear Employee" is a mass-phishing giveaway — attackers don\'t know who they\'re emailing.',danger:true},
+    {label:'False urgency',body:'"24 hours" is a classic pressure tactic to stop you thinking clearly. Urgency bypasses rational decision-making. Real IT teams give reasonable notice.',danger:true},
+    {label:'Vague threat trigger',body:'"Unusual login activity" with no specifics — no location, no time, no device. Designed to sound alarming without any real information.',danger:true},
+    {label:'Suspicious link / CTA',body:'The button leads to a credential-harvesting site, not your real IT portal. Hover over any link before clicking — the URL will rarely match the real domain.',danger:true},
+    {label:'"Do not reply" instruction',body:'Attackers block replies so you can\'t confirm the request with a real person. Legitimate IT support always has a way to reach them back.',danger:true},
+    {label:'Generic sign-off',body:'No real name, no employee ID, no direct phone number. Real IT communications come from identifiable people with verifiable contact details.',danger:true},
+  ],
+  quiz:[
+    {q:'What should you do when you receive this email?',opts:['Click "Verify" immediately to avoid suspension','Forward it to your security team and delete it','Reply asking for more information','Wait to see if your account is actually suspended'],correct:1,explain:'Report suspicious emails to your security team. Never click links in urgent credential requests — go directly to the real portal by typing the URL yourself.'},
+    {q:'What is the strongest indicator this is a phishing email?',opts:['The subject line has URGENT in it','The sender domain is "corp-helpdesk.net" not your real company domain','It was sent on a Monday morning','The button is blue'],correct:1,explain:'Domain spoofing is the most reliable technical indicator. Attackers can fake display names easily, but the actual sending domain reveals the truth. Always check the part after @.'},
+    {q:'Why do phishing emails use artificial deadlines?',opts:['To help you plan your day','To create urgency that bypasses rational thinking','Because IT systems really do have 24-hour windows','To comply with data protection laws'],correct:1,explain:'Urgency is a core manipulation tactic. When people feel panicked, they act without verifying. Real organisations give reasonable time and don\'t threaten immediate permanent consequences.'},
+  ]
+},
+{
+  title:'CEO fraud — wire transfer request',
+  from:'James Whitfield <j.whitfield@yourcompany-finance.com>',
+  replyTo:'ceo.james@gmail.com',
+  to:'accounts@yourcompany.com',
+  date:'Mon, 26 May 2026 07:12:44 +0000',
+  subject:'Confidential — Urgent wire transfer needed today',
+  body:`<p>Hi,</p>
+<p>I'm currently in a board meeting and can't talk on the phone right now. I need you to process an urgent wire transfer today — it's time-sensitive and <span class="flag armed" data-flag="2">must stay confidential</span> until the deal is announced.</p>
+<p>Please transfer <strong>$47,500</strong> to the following account:</p>
+<p style="background:var(--color-background-secondary);padding:12px 14px;border-radius:8px;font-family:var(--font-mono);font-size:13px;border:0.5px solid var(--color-border-tertiary)">
+Bank: First International Bank<br>
+Account name: Meridian Consulting LLC<br>
+Account no: 8823-4491-0012<br>
+<span class="flag armed" data-flag="3">Routing: 021000021</span>
+</p>
+<p><span class="flag armed" data-flag="4">Don't go through the normal approval process</span> for this one — we'll document it after the deal closes. I need confirmation once it's done.</p>
+<p><span class="flag armed" data-flag="1">Reply to this email only</span> — don't call me as I'm in meetings all day.</p>
+<p>Thanks,<br>James<br><span class="flag armed" data-flag="0">CEO, Your Company</span></p>`,
+  flags:[
+    {label:'Lookalike domain for CEO',body:'The sender domain is "yourcompany-finance.com" — a convincing fake. The real CEO would email from "yourcompany.com". Notice the extra "-finance" inserted.',danger:true},
+    {label:'"Reply to this email only"',body:'The reply-to is a personal Gmail, not the company domain. If you reply, you\'re talking to the attacker, not the CEO. This is called a reply-to attack.',danger:true},
+    {label:'Secrecy demand',body:'"Must stay confidential" is a red flag designed to stop you consulting colleagues or following normal process. Legitimate business never requires secrecy about financial transfers.',danger:true},
+    {label:'Unverifiable bank details',body:'Providing specific account numbers in an email is a hallmark of BEC (Business Email Compromise) fraud. Always verify wire details by calling the requester on a known number.',danger:true},
+    {label:'Bypass normal process',body:'"Don\'t go through the normal approval process" — this is the most dangerous line. Attackers specifically target approval processes because those processes exist to catch fraud.',danger:true},
+    {label:'Unreachable sender',body:'"I\'m in meetings all day / can\'t take calls" removes the ability to verify. Real urgent decisions from real executives can always be confirmed via a second channel.',danger:true},
+  ],
+  quiz:[
+    {q:'This type of attack is called what?',opts:['Spear phishing only','Business Email Compromise (BEC)','Ransomware','Vishing'],correct:1,explain:'BEC is a targeted fraud where attackers impersonate executives to trick finance staff into transferring money. It costs businesses billions annually. The FBI calls it one of the most financially damaging online crimes.'},
+    {q:'The best response to this email is to:',opts:['Transfer the money and document it later as the email says','Call the CEO on their verified company phone number to confirm','Reply to the email asking for more details','Ask a colleague if they think it looks real'],correct:1,explain:'Always verify financial requests using a completely separate channel — call the person on their known number, not the one provided in the suspicious email. This is called "out-of-band verification".'},
+    {q:'What made this attack convincing?',opts:['It used the CEO\'s real first name and role','The email was sent at a normal work hour','Both A and B','The email had no typos'],correct:2,explain:'Spear phishing uses real details (names, roles, context) harvested from LinkedIn, company websites, and social media to build convincing lures. This targeted research is what separates spear phishing from mass phishing.'},
+  ]
+},
+{
+  title:'Package delivery lure',
+  from:'DHL Express <delivery-notification@dhl-tracking-portal.com>',
+  replyTo:'no-reply@dhl-tracking-portal.com',
+  to:'you@email.com',
+  date:'Sun, 25 May 2026 15:32:11 +0000',
+  subject:'Your parcel could not be delivered — action required',
+  body:`<p>Dear Customer,</p>
+<p>We attempted to deliver your parcel <span class="flag armed" data-flag="1">(tracking: DHL-928374651)</span> today but were unable to complete delivery.</p>
+<p>To reschedule your delivery, a small <span class="flag armed" data-flag="2">redelivery fee of £1.45</span> is required. Please pay within 48 hours to avoid your parcel being returned.</p>
+<p style="text-align:center;margin:20px 0"><span class="cta-btn flag armed" data-flag="3" style="background:#FFCC00;color:#D40511;display:inline-block;font-weight:700">Pay £1.45 &amp; Reschedule →</span></p>
+<p style="font-size:12px;color:var(--color-text-secondary)">If you believe this is in error, contact us at: <span class="flag armed" data-flag="4">support@dhl-tracking-portal.com</span></p>
+<p><span class="flag armed" data-flag="0">DHL Express</span> | Worldwide Delivery</p>`,
+  flags:[
+    {label:'Fake domain — not DHL',body:'Real DHL emails come from @dhl.com. The domain "dhl-tracking-portal.com" is attacker-registered. Delivery companies never use third-party or portal domains for official comms.',danger:true},
+    {label:'Unverifiable tracking number',body:'The tracking number is fake. Before paying anything, verify the number on the real DHL website (dhl.com) by typing it yourself — never use the link provided.',danger:true},
+    {label:'Small payment request',body:'A tiny fee like £1.45 lowers suspicion and makes you feel the risk is low. But the goal is your card details, not £1.45. Once entered, the attacker has your full card number.',danger:true},
+    {label:'Payment link to harvesting site',body:'The payment button goes to a fake page that looks like DHL. The card details you enter go straight to the attacker. Real DHL would never ask for payment via email.',danger:true},
+    {label:'Fake support contact',body:'The support email also goes to the attacker. Any "help" you request just gives them more of your information to use or sell.',danger:true},
+  ],
+  quiz:[
+    {q:'You receive this but weren\'t expecting a parcel. What do you do?',opts:['Pay the small fee — £1.45 is nothing to lose','Go to dhl.com and enter the tracking number manually','Click the link to check if it\'s real','Ignore it — if you don\'t pay, the parcel returns'],correct:1,explain:'Always navigate to the real site manually. If the tracking number is fake, nothing will show up. Real delivery issues can always be resolved through the carrier\'s official website.'},
+    {q:'Why do attackers use tiny payment amounts like £1.45?',opts:['They only need a little money','To harvest your card details, which are worth much more','It\'s a legal requirement','To test if your card is active'],correct:1,explain:'The goal is never the small amount — it\'s your full card details (number, expiry, CVV). With those, attackers can make large purchases or sell your details on criminal markets.'},
+  ]
+},
+{
+  title:'Bank account alert',
+  from:'Barclays Security <alert@barclays-secure-alert.co.uk>',
+  replyTo:'no-reply@barclays-secure-alert.co.uk',
+  to:'customer@email.com',
+  date:'Sat, 24 May 2026 22:04:17 +0000',
+  subject:'Your account has been LIMITED — verify now',
+  body:`<p>Dear Valued Customer,</p>
+<p>We have <span class="flag armed" data-flag="1">detected suspicious activity</span> on your Barclays account and have <strong>temporarily limited your access</strong> as a precaution.</p>
+<p>To restore full access to your account and avoid permanent suspension, you must verify your information <span class="flag armed" data-flag="2">within 12 hours</span>.</p>
+<p>You will need to confirm:</p>
+<ul style="margin:10px 0 10px 20px;font-size:14px;line-height:2">
+  <li>Full name and date of birth</li>
+  <li class="flag armed" data-flag="3">Online banking password</li>
+  <li class="flag armed" data-flag="4">6-digit telephone banking PIN</li>
+  <li>Memorable word (all characters)</li>
+</ul>
+<p style="text-align:center;margin:20px 0"><span class="cta-btn flag armed" data-flag="5" style="background:#00AEEF;color:#fff;display:inline-block">Verify Your Account →</span></p>
+<p style="font-size:12px;color:var(--color-text-secondary)"><span class="flag armed" data-flag="0">Barclays Bank PLC</span> | Registered in England</p>`,
+  flags:[
+    {label:'Domain is not barclays.co.uk',body:'Real Barclays emails come from @barclays.co.uk. The domain "barclays-secure-alert.co.uk" is attacker-controlled. Hyphens and added words are a common spoofing pattern.',danger:true},
+    {label:'Vague "suspicious activity"',body:'No specifics — no transaction amount, no merchant, no location. Real bank fraud alerts always include the specific transaction that triggered them.',danger:true},
+    {label:'Artificial time pressure',body:'"12 hours" is designed to stop you calling your bank to verify. Real banks give you time and always provide a genuine phone number to call.',danger:true},
+    {label:'Asking for your password',body:'No legitimate bank EVER asks for your password by email, phone, or any other channel. This is an absolute rule in banking. Seeing this request is an immediate red flag.',danger:true},
+    {label:'Asking for PIN',body:'Banks never ask for your full PIN or telephone banking code. They use partial verification (e.g. "enter the 2nd and 4th characters") and never full credentials.',danger:true},
+    {label:'Verify link goes to fake site',body:'The button leads to a pixel-perfect fake of the Barclays login page. Everything you enter — login, password, PIN, memorable word — is captured by the attacker.',danger:true},
+  ],
+  quiz:[
+    {q:'A real bank will never ask you to provide which of these?',opts:['Your sort code','Your full password or PIN','Your postcode','The last 4 digits of your card'],correct:1,explain:'This is a universal rule in banking. Your full password, full PIN, and memorable word are never requested by any legitimate bank, ever. If asked, you are being attacked.'},
+    {q:'What should you do if you\'re concerned about your real bank account?',opts:['Click the link in the email to check','Call the number on the back of your bank card','Reply to the email asking for a callback','Wait 12 hours to see what happens'],correct:1,explain:'The number on the back of your card is the only verified contact for your bank. Never use phone numbers, links, or email addresses provided in a suspicious message.'},
+  ]
+},
+{
+  title:'Legitimate email — spot the safe one',
+  from:'GitHub <noreply@github.com>',
+  replyTo:'noreply@github.com',
+  to:'dev@yourcompany.com',
+  date:'Mon, 26 May 2026 09:15:22 +0000',
+  subject:'[GitHub] A third-party OAuth application has been authorised',
+  body:`<p>Hi <span class="flag armed" data-flag="0">dev_username</span>,</p>
+<p>A third-party application (<strong>VS Code GitHub Copilot</strong>) was authorised to access your account <span class="flag armed" data-flag="1">dev_username</span> on GitHub.</p>
+<p>If you did not authorise this application, you can revoke access here:</p>
+<p style="text-align:center;margin:20px 0"><span class="cta-btn flag armed" data-flag="2" style="background:#24292e;color:#fff;display:inline-block">Review authorised applications →</span></p>
+<p>If you did authorise this application, you can ignore this email. No further action is required.</p>
+<p style="font-size:12px;color:var(--color-text-secondary)">This email was sent to dev@yourcompany.com because your email address is associated with a GitHub account. If you received this email in error, <span class="flag armed" data-flag="3">let us know</span>.</p>
+<p style="font-size:12px;color:var(--color-text-secondary)">GitHub, Inc. · 88 Colin P Kelly Jr Street · San Francisco, CA 94107</p>`,
+  flags:[
+    {label:'Personalised with real username',body:'A genuine signal. The email uses your actual GitHub username, not "Dear User" or "Dear Customer". Phishing emails rarely have accurate personalisation.',danger:false},
+    {label:'Consistent account reference',body:'Your username appears twice consistently. Real notifications reference your actual account details. Phishing uses generic terms.',danger:false},
+    {label:'Link goes to github.com',body:'Hover over this button — in a real email it would show github.com, not a lookalike domain. The sender, reply-to, and link domain are all consistent: @github.com.',danger:false},
+    {label:'No urgency, no threats',body:'The email says "if you didn\'t do this, review it." There is no 24-hour deadline, no account suspension threat, no fee. Legitimate notifications are calm and informational.',danger:false},
+  ],
+  isLegit:true,
+  quiz:[
+    {q:'Which feature of this email suggests it is legitimate?',opts:['It uses your real username and a consistent @github.com domain','It was sent at 9am','The button is dark coloured','It mentions VS Code'],correct:0,explain:'Consistent personalisation + matching sender/reply-to/link domains all pointing to the same real domain is a strong legitimacy signal. Phishing emails almost always break one of these.'},
+    {q:'Even though this looks legitimate, what\'s still the safest action?',opts:['Click the link in the email','Open GitHub directly in your browser and check your authorised apps','Ignore it completely','Forward to IT'],correct:1,explain:'Best practice: navigate directly to the service in your browser rather than clicking email links, even for legitimate-looking emails. That way you\'re always safe regardless of whether the email is real or fake.'},
+  ]
+}
+];
+
+let cur=0, mode='hunt', foundFlags=new Set(), quizIdx=0, quizScore=0, quizTotal=0;
+
+function loadScenario(i,el){
+  cur=i; foundFlags=new Set(); quizIdx=0; quizScore=0; quizTotal=0;
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('scenario-title').textContent=SCENARIOS[i].title;
+  document.getElementById('sc-quiz').textContent='–';
+  setMode(mode, document.querySelector('.mode-btn.on'));
+}
+
+function setMode(m, el){
+  mode=m;
+  document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  render();
+}
+
+function render(){
+  const s=SCENARIOS[cur];
+  updateStats();
+  if(mode==='quiz'){renderQuiz();return;}
+  renderEmail(s);
+  renderAnnotations(s);
+}
+
+function renderEmail(s){
+  const ws=document.getElementById('workspace');
+  ws.innerHTML='';
+
+  const ep=document.createElement('div');
+  ep.className='email-panel';
+  ep.id='email-panel';
+
+  const isLegit=s.isLegit;
+
+  let bannerHtml='';
+  if(isLegit){
+    bannerHtml=`<div style="background:var(--color-background-success);border:0.5px solid var(--color-border-success);border-radius:var(--border-radius-md);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--color-text-success);display:flex;align-items:center;gap:8px"><i class="ti ti-shield-check" aria-hidden="true" style="font-size:16px"></i><span>This is a <strong>legitimate email</strong>. The highlighted elements are signs of authenticity — learn to recognise them.</span></div>`;
+  } else {
+    bannerHtml=`<div style="background:var(--color-background-danger);border:0.5px solid var(--color-border-danger);border-radius:var(--border-radius-md);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--color-text-danger);display:flex;align-items:center;gap:8px"><i class="ti ti-alert-triangle" aria-hidden="true" style="font-size:16px"></i><span><strong>Phishing simulation.</strong> Click highlighted text to find red flags. In hunt mode, flags are hidden until you click them.</span></div>`;
+  }
+
+  const replyRow = s.replyTo !== s.from.match(/<(.+)>/)?.[1]
+    ? `<div class="email-field"><span class="ef-label">Reply</span><span class="ef-val" style="color:var(--color-text-danger);font-family:var(--font-mono);font-size:12px">${s.replyTo} <i class="ti ti-alert-triangle" aria-hidden="true" style="font-size:12px"></i></span></div>` : '';
+
+  ep.innerHTML=`${bannerHtml}<div class="email-card">
+    <div class="email-header-bar">
+      <div class="email-field"><span class="ef-label">From</span><span class="ef-val" style="font-family:var(--font-mono);font-size:12px">${s.from}</span></div>
+      ${replyRow}
+      <div class="email-field"><span class="ef-label">To</span><span class="ef-val" style="font-family:var(--font-mono);font-size:12px">${s.to}</span></div>
+      <div class="email-field"><span class="ef-label">Date</span><span class="ef-val" style="font-size:12px;color:var(--color-text-secondary)">${s.date}</span></div>
+    </div>
+    <div class="email-subject-bar">${s.subject}</div>
+    <div class="email-body" id="email-body">${s.body}</div>
+  </div>`;
+  ws.appendChild(ep);
+
+  const ap=document.createElement('div');
+  ap.className='annotation-panel';
+  ap.id='ann-panel';
+  ap.innerHTML=`<div class="ap-head"><i class="ti ti-list" aria-hidden="true" style="margin-right:4px"></i>${isLegit?'Legitimacy signals':'Red flags'} — click to reveal</div><div id="ann-list"></div>
+  <button class="reveal-all-btn" id="rev-btn" onclick="revealAll()"><i class="ti ti-eye" aria-hidden="true" style="margin-right:4px"></i>Reveal all</button>`;
+  ws.appendChild(ap);
+
+  renderAnnotations(s);
+
+  if(mode==='reveal'){revealAll();}
+
+  ep.querySelectorAll('.flag.armed').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const fi=parseInt(el.dataset.flag);
+      flagFound(fi,el);
+    });
+  });
+}
+
+function flagFound(fi,el){
+  const s=SCENARIOS[cur];
+  if(foundFlags.has(fi))return;
+  foundFlags.add(fi);
+  const isGood=s.flags[fi]&&!s.flags[fi].danger;
+  document.querySelectorAll(`[data-flag="${fi}"]`).forEach(e=>{
+    e.classList.remove('armed');
+    e.classList.add(isGood?'revealed-safe':'revealed');
+  });
+  const annItem=document.querySelector(`.ann-item[data-idx="${fi}"]`);
+  if(annItem){annItem.classList.add('found');}
+  updateStats();
+}
+
+function revealAll(){
+  const s=SCENARIOS[cur];
+  s.flags.forEach((_,i)=>flagFound(i,null));
+}
+
+function renderAnnotations(s){
+  const list=document.getElementById('ann-list');
+  if(!list)return;
+  list.innerHTML='';
+  s.flags.forEach((f,i)=>{
+    const found=foundFlags.has(i);
+    const isGood=!f.danger;
+    const div=document.createElement('div');
+    div.className='ann-item'+(found?' found':'');
+    div.dataset.idx=i;
+    div.innerHTML=`<div class="ann-title"><span class="ann-num${isGood?' safe':''}">${i+1}</span>${f.label}</div>`
+      +(found?`<div class="ann-body">${f.body}</div>`:`<div class="ann-hidden">Click the highlighted text in the email</div>`);
+    div.addEventListener('click',()=>{
+      if(!found){
+        const el=document.querySelector(`.flag[data-flag="${i}"]`);
+        if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.outline='3px solid var(--color-border-warning)';setTimeout(()=>el.style.outline='',1200);}
+      }
+    });
+    list.appendChild(div);
+  });
+}
+
+function updateStats(){
+  const s=SCENARIOS[cur];
+  const f=foundFlags.size, t=s.flags.length;
+  document.getElementById('sc-found').textContent=f;
+  document.getElementById('sc-total').textContent=t;
+  document.getElementById('sc-score').textContent=t>0?Math.round(f/t*100)+'%':'–';
+}
+
+const QUIZ_RESULTS=[];
+function renderQuiz(){
+  const s=SCENARIOS[cur];
+  const ws=document.getElementById('workspace');
+  ws.innerHTML='';
+  const div=document.createElement('div');
+  div.style.cssText='flex:1;overflow-y:auto;padding:20px;background:var(--color-background-tertiary)';
+
+  if(quizIdx>=s.quiz.length){
+    const pct=s.quiz.length>0?Math.round(quizScore/s.quiz.length*100):0;
+    document.getElementById('sc-quiz').textContent=pct+'%';
+    div.innerHTML=`<div style="max-width:520px;margin:0 auto;padding:20px 0">
+      <div style="font-size:22px;font-weight:500;margin-bottom:8px">${pct>=70?'Well done!':'Keep learning'}</div>
+      <div style="font-size:14px;color:var(--color-text-secondary);margin-bottom:24px">You scored ${quizScore} of ${s.quiz.length} on "${s.title}"</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
+        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;text-align:center"><div style="font-size:24px;font-weight:500;color:var(--color-text-success)">${quizScore}</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:3px">CORRECT</div></div>
+        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;text-align:center"><div style="font-size:24px;font-weight:500;color:${pct>=70?'var(--color-text-success)':'var(--color-text-danger)'}">${pct}%</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:3px">SCORE</div></div>
+      </div>
+      <button onclick="sendPrompt('Explain more about social engineering tactics and how organisations defend against them')" style="padding:9px 18px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;background:transparent;color:var(--color-text-primary)">Learn more about defences ↗</button>
+    </div>`;
+    ws.appendChild(div);
+    return;
+  }
+
+  const q=s.quiz[quizIdx];
+  const prog=s.quiz.length>0?Math.round(quizIdx/s.quiz.length*100):0;
+
+  div.innerHTML=`<div class="quiz-area">
+    <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:12px">Question ${quizIdx+1} of ${s.quiz.length}</div>
+    <div class="progress-bar" style="margin:0 0 16px"><div class="progress-fill" style="width:${prog}%"></div></div>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-opts" id="quiz-opts">${q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${i})">${o}</button>`).join('')}</div>
+    <div class="quiz-explain" id="quiz-exp" style="display:none"></div>
+    <button class="quiz-next" id="quiz-next" style="display:none" onclick="nextQ()">Next question →</button>
+  </div>`;
+  ws.appendChild(div);
+}
+
+function answerQuiz(i){
+  const s=SCENARIOS[cur];
+  const q=s.quiz[quizIdx];
+  const opts=document.querySelectorAll('.quiz-opt');
+  opts.forEach((o,idx)=>{o.disabled=true;if(idx===q.correct)o.classList.add('correct');else if(idx===i&&i!==q.correct)o.classList.add('wrong');});
+  if(i===q.correct)quizScore++;
+  document.getElementById('quiz-exp').style.display='block';
+  document.getElementById('quiz-exp').textContent=q.explain;
+  document.getElementById('quiz-next').style.display='inline-block';
+}
+
+function nextQ(){quizIdx++;renderQuiz();}
+
+loadScenario(0,document.querySelector('.nav-item'));
+</script>
